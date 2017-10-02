@@ -9,9 +9,9 @@ Use
 to build it and run the tests.
 This includes tests run on embedded glassfish in the test-ear module.
 
-'deploy' module unpacks Glassfish 4.2, configures it, deploys application into it
+'deploy' module unpacks Glassfish 4.1.2, configures it, deploys application into it
 (and restarts the application server to avoid glitch with web-socket after application redeploy)
-For it to work on needs to download Glassfish 4.2 distribution package similarly to
+For it to work on needs to download Glassfish 4.1.2 distribution package similarly to
   wget "http://download.java.net/glassfish/4.1.2/release/glassfish-4.1.2.zip"
 and then install it as a local maven artifact via
   mvn install:install-file -Dfile=./glassfish-4.1.2.zip -DgroupId=glassfish -DartifactId=glassfish -Dversion=4.1.2 -Dpackaging=zip
