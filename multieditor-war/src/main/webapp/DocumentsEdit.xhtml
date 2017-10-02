@@ -1,0 +1,92 @@
+<?xml version='1.0' encoding='UTF-8' ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+        "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:ui="http://xmlns.jcp.org/jsf/facelets"
+      xmlns:f="http://xmlns.jcp.org/jsf/core"
+      xmlns:h="http://xmlns.jcp.org/jsf/html"
+>
+<body>
+
+<ui:composition template="/template.xhtml">
+    <ui:define name="metadata">
+        <f:metadata>
+            <f:viewParam name="#{UtilityBean.documentParamName}"
+                         value="#{documentsEditPageBean.documentNameViaUrlParameter}"/>
+        </f:metadata>
+    </ui:define>
+
+    <ui:define name="title">Documents administration page</ui:define>
+
+    <ui:define name="body">
+        <h:panelGroup rendered="#{not userBean.loggedIn}">
+            <p>You should be <h:link outcome="Login" title="Click to login" value="logged in"/> to perform this action.
+            </p>
+        </h:panelGroup>
+
+        <h:panelGroup rendered="#{userBean.loggedIn}">
+            <h:panelGrid>
+                <h:outputText value="Please, select document to edit:"/>
+                <h:selectOneListbox id="documentList" value="#{documentsEditPageBean.selectedDocumentName}" size="8"
+                                    immediate="false">
+                    <f:selectItems value="#{documentsEditPageBean.documentNames}"/>
+                </h:selectOneListbox>
+                <h:panelGrid columns="4">
+                    <h:commandButton immediate="false" action="#{documentsEditPageBean.editDocument}" value="Edit">
+                        <f:ajax render="@form" execute="@this form:documentList"/>
+                    </h:commandButton>
+                    <h:commandButton action="#{documentsEditPageBean.saveDocument}" value="Save"
+                                     title="Save changes to the existing document or create a new one"
+                                     disabled="#{documentsEditPageBean.readOnly}"/>
+                    <h:commandButton immediate="false" action="#{documentsEditPageBean.deleteDocument}" value="Delete"
+                                     title="Remove selected document from the database"
+                                     onclick="return confirmDocumentRemove('form:documentList');"
+                                     disabled="#{documentsEditPageBean.readOnly}">
+                        <f:ajax render="@form" execute="@this form:documentList"/>
+                    </h:commandButton>
+                </h:panelGrid>
+            </h:panelGrid>
+
+            <br/>
+
+            <h:panelGrid columns="1" style="width: 100%">
+                <f:facet name="caption">
+                    <h:outputText value="Create new document:"/>
+                </f:facet>
+                <h:outputLabel for="name" value="Name: "/>
+                <h:panelGroup>
+                    <h:inputText id="name" value="#{documentsEditPageBean.documentName}" size="80" maxlength="120"
+                                 required="true" requiredMessage="Please, enter a unique name."/>
+                    <h:message for="name" errorStyle="color: red"/>
+                </h:panelGroup>
+
+                <h:outputLabel for="description" value="Description: "/>
+                <h:panelGroup>
+                    <h:inputText id="description" value="#{documentsEditPageBean.description}" size="80" maxlength="120"
+                                 required="true" requiredMessage="Please, enter a description."/>
+                    <h:message for="description" errorStyle="color: red"/>
+                </h:panelGroup>
+
+                <h:outputText value="Document Contents: "/>
+                <h:inputTextarea value="#{documentsEditPageBean.contents}" rows="50" style="width: 100%"/>
+
+                <h:commandButton action="#{documentsEditPageBean.saveDocument}" value="Save"
+                                 disabled="#{documentsEditPageBean.readOnly}"/>
+
+            </h:panelGrid>
+
+            <br/>
+        </h:panelGroup>
+
+        <h:messages styleClass="errorMessage"/>
+
+    </ui:define>
+
+    This text will not be displayed.
+
+</ui:composition>
+
+This text below will also not be displayed.
+
+</body>
+</html>

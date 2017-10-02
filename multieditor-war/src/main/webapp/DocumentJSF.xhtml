@@ -1,0 +1,95 @@
+<?xml version='1.0' encoding='UTF-8' ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+        "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:ui="http://xmlns.jcp.org/jsf/facelets"
+      xmlns:f="http://xmlns.jcp.org/jsf/core"
+      xmlns:h="http://xmlns.jcp.org/jsf/html"
+>
+<body>
+<!-- saved for debugging purposes JSF version of the document page
+     to be able to do simple modify/manual refresh experiments,
+     update on every keypress turned off -->
+<ui:composition template="/template.xhtml">
+    <ui:define name="metadata">
+        <f:metadata>
+            <f:viewParam name="#{UtilityBean.documentParamName}"
+                         value="#{documentPageBean.documentNameViaUrlParameter}"/>
+        </f:metadata>
+    </ui:define>
+
+    <ui:define name="title">Editing: #{documentPageBean.documentName}</ui:define>
+
+    <ui:define name="body">
+        <h:panelGroup rendered="#{not userBean.loggedIn}">
+            <p>You should be
+                <h:link outcome="Login" title="Click to login" value="logged in"/> to perform this action.</p>
+        </h:panelGroup>
+
+        <h:panelGroup rendered="#{userBean.loggedIn}">
+            <br/>
+
+            <h:panelGrid columns="1" style="width: 100%">
+                <!--<f:facet name="caption">-->
+                <!--<h:outputText value="Name #{documentPageBean.documentName}:"/>-->
+                <!--</f:facet>-->
+
+                <h:outputText value="Description: #{documentPageBean.description}"/>
+                <h:outputText value="Saved at #{documentPageBean.savedAt}"/>
+
+                <h:commandButton action="#{documentPageBean.refresh}" value="Refresh">
+                    <f:ajax render="@form"/>
+                </h:commandButton>
+
+                <!--<h:inputHidden value="#{documentPageBean.contents}" id="hid">-->
+                <!--<f:passThroughAttribute name="onchange" value="alert('changed');"/>-->
+                <!--</h:inputHidden>-->
+
+                <h:inputTextarea value="#{documentPageBean.contents}"
+                                 valueChangeListener="#{documentPageBean.contentsValueChange}"
+                                 rows="50" style="width: 100%">
+                    <!--<f:ajax event="input"/> leads to
+                    'input' is not a supported event for HtmlInputTextarea.  Please specify one of these supported event names: blur, change, click, dblclick, focus, keydown, keypress, keyup, mousedown, mousemove, mouseout, mouseover, mouseup, select, valueChange.
+                     so we have to use passThroughtAttribute -->
+                    <f:ajax/>
+                    <!--<f:ajax render="form:hid"/>-->
+                    <!--render="@this"/>-->
+
+                    <!-- do not update on every keypress -->
+                    <!--<f:passThroughAttribute name="oninput" value="this.onchange();"/>-->
+
+                    <!--var oldStart = this.selectionStart;-->
+                    <!--var oldEnd = this.selectionEnd;-->
+                    <!--var oldDirection = this.selectionDirection;-->
+                    <!--alert(this.value.length-document.getElementById('form:hid').value.length);-->
+                    <!--this.onchange();                                                          -->
+                    <!--alert(this.value.length-document.getElementById('form:hid').value.length);-->
+                    <!--this.setSelectionRange(oldStart, oldEnd, oldDirection);-->
+                    <!--"/>-->
+                </h:inputTextarea>
+
+                <h:commandButton action="#{documentPageBean.saveDocument}" value="Save"
+                                 title="Save changes to the existing document"
+                                 disabled="#{documentPageBean.readOnly}"/>
+
+                <h:commandButton immediate="false" action="#{documentPageBean.deleteDocument}" value="Delete"
+                                 title="Remove current document from the database"
+                                 disabled="#{documentPageBean.readOnly}"/>
+
+            </h:panelGrid>
+
+            <br/>
+        </h:panelGroup>
+
+        <h:messages styleClass="errorMessage"/>
+
+    </ui:define>
+
+    This text will not be displayed.
+
+</ui:composition>
+
+This text below will also not be displayed.
+
+</body>
+</html>

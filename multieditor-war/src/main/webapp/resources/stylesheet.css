@@ -1,0 +1,197 @@
+/* Styles for expand-collapse, just beautifiers */
+.tableHeader {
+    color: #000000;
+    text-decoration: none;
+    background-position: center top;
+    background-repeat: repeat-x;
+    font-weight: bold;
+    display: block;
+    padding: 3px 0 3px 5px;
+    cursor: pointer;
+}
+
+.tableHeader tr:hover {
+    background-color: #EFEFEF;
+}
+
+.aux-col {
+    width: 2.5%;
+}
+
+.num-value-col {
+    width: 6%;
+}
+
+.st-value-col {
+    width: 8%;
+}
+
+.time-value-col {
+    width: 11%;
+}
+
+.attr-name-col {
+    width: 30%;
+}
+
+table.sortable {
+    table-layout: fixed;
+}
+
+table.sortable td {
+    white-space: normal;
+    word-wrap: break-word;
+}
+
+.grayBox {
+    padding: 4px;
+    margin: 2px 0;
+    border: 1px solid #666;
+    background-color: #f0f0f0;
+}
+
+a.simplelink {
+    font-size: 100%;
+    color: #26485F;
+    text-decoration: none;
+}
+
+a.simplelink:hover {
+    color: #a88870;
+    cursor: pointer;
+}
+
+/* Style rules to make data tables look better */
+
+.list-header {
+    background-color: #eeeeee;
+    font-size: larger;
+    font-weight: bold;
+}
+
+.list-paging-header, .list-paging-footer {
+    background-color: white;
+}
+
+.list-row-even {
+}
+
+.list-row-odd {
+    background-color: #eeeeee;
+}
+
+/* Style rules for message severity levels */
+
+.infoMessage {
+    color: black;
+}
+
+.warnMessage {
+    color: orange;
+    font-weight: bold;
+}
+
+.errorMessage {
+    color: red;
+    font-weight: bold;
+    white-space: pre-wrap;
+}
+
+.fatalMessage {
+    color: red;
+    font-style: italic;
+    font-weight: bold;
+}
+
+ul.maintree {
+    /* general settings */
+    text-align: left; /* set to left, right or center */
+    margin: 1em 0 1em 0; /* set margins as desired */
+    list-style-type: none;
+    padding: 0px 1px 0px 1px; /* THIRD number must change with respect to padding-top (X) below */
+    font-size: 120%;
+}
+
+/*font: bold 11px verdana, arial, sans-serif; *//* set font as desired */
+/*border-bottom: 1px solid black; *//* set border COLOR as desired */
+
+/** Begin CSS Tabs */
+ul#tabnav {
+    /* general settings */
+    text-align: left; /* set to left, right or center */
+    margin: 1em 0 1em 0; /* set margins as desired */
+    font: bold 11px verdana, arial, sans-serif; /* set font as desired */
+    border-bottom: 1px solid black; /* set border COLOR as desired */
+    list-style-type: none;
+    padding: 3px 10px 3px 10px; /* THIRD number must change with respect to padding-top (X) below */
+}
+
+ul#tabnav li {
+    /* do not change */
+    display: inline;
+}
+
+body#tab1 li.tab1, body#tab2 li.tab2, body#tab3 li.tab3, body#tab4 li.tab4 {
+    /* settings for selected tab */
+    border-bottom: 1px solid grey; /* set border color to page background color */
+    background-color: #fff; /* set background color to match above border color */
+}
+
+body#tab1 li.tab1 a, body#tab2 li.tab2 a, body#tab3 li.tab3 a, body#tab4 li.tab4 a {
+    /* settings for selected tab link */
+    background-color: #fff; /* set selected tab background color as desired */
+    color: #000; /* set selected tab link color as desired */
+    position: relative;
+    top: 1px;
+    padding-top: 4px; /* must change with respect to padding (X) above and below */
+}
+
+tr.top_aliggned_rows {
+    vertical-align: top;
+}
+
+ul#tabnav li > a {
+    /* settings for all tab links */
+    padding: 3px 4px; /* set padding (tab size) as desired; FIRST number must change with respect to padding-top (X) above */
+    border: 1px solid grey; /* set border COLOR as desired; usually matches border color specified in #tabnav */
+    background-color: #eeeeee; /* set unselected tab background color as desired */
+    color: #666; /* set unselected tab link color as desired */
+    margin-right: 0px; /* set additional spacing between tabs as desired */
+    text-decoration: none;
+    border-bottom: none;
+}
+
+ul#tabnav li > a:hover {
+    /* settings for hover effect */
+    background: #fff; /* set desired hover color */
+}
+
+/** End CSS Tabs */
+
+.hiddentable {
+    border: 0px;
+    margin: 0px;
+    padding: 0px;
+    border-collapse: collapse;
+}
+
+/* disable Firefox default button settings */
+input[type="submit"]::-moz-focus-inner,
+input[type="button"]::-moz-focus-inner,
+input[type="reset"]::-moz-focus-inner {
+    border: 0;
+    padding: 0;
+}
+
+/* general case */
+input[type="submit"], input[type="button"], input[type="reset"] {
+    padding: 1px 4px;
+}
+
+/* hack for Chrome (also applies to other webkit) */
+@media screen and (-webkit-min-device-pixel-ratio: 0) {
+    input[type="submit"], input[type="button"], input[type="reset"] {
+        /* need to increase top and bottom padding in Chrome */
+        padding: 2px 4px;
+    }
+}

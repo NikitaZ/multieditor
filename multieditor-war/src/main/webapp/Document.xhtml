@@ -1,0 +1,193 @@
+<?xml version='1.0' encoding='UTF-8' ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+        "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:ui="http://xmlns.jcp.org/jsf/facelets"
+      xmlns:f="http://xmlns.jcp.org/jsf/core"
+      xmlns:h="http://xmlns.jcp.org/jsf/html"
+>
+<body>
+
+<ui:composition template="/template.xhtml">
+    <ui:define name="metadata">
+        <f:metadata>
+            <f:viewParam name="#{UtilityBean.documentParamName}"
+                         value="#{documentPageBean.documentNameViaUrlParameter}"/>
+        </f:metadata>
+    </ui:define>
+
+    <ui:define name="title">Editing: #{documentPageBean.documentName}</ui:define>
+
+    <ui:define name="body">
+        <h:panelGroup rendered="#{not userBean.loggedIn}">
+            <p>You should be
+                <h:link outcome="Login" title="Click to login" value="logged in"/> to perform this action.</p>
+        </h:panelGroup>
+
+        <h:panelGroup rendered="#{userBean.loggedIn}">
+            <br/>
+
+            <h:panelGrid columns="1" style="width: 100%">
+                <!--<f:facet name="caption">-->
+                <!--<h:outputText value="Name #{documentPageBean.documentName}:"/>-->
+                <!--</f:facet>-->
+
+                <h:outputText value="Description: #{documentPageBean.description}"/>
+
+                <div id="statusId">Status:</div>
+
+                <f:websocket channel="multieditorJSFWebsocketChannel"
+                             onmessage="multieditorWebsocketListener"
+                             scope="application"/>
+
+                <h:inputTextarea id="contentTextArea"
+                                 value="#{documentPageBean.contents}"
+                                 valueChangeListener="#{documentPageBean.contentsValueChange}"
+                                 rows="50" style="width: 100%">
+                    <f:passThroughAttribute name="oninput" value="contentUpdated('saving');"/>
+                    <!-- if we put listeners for both oninput and onchange, 
+                         event triggers twice even on paste via right mouse button menu, hence we comment out onchange -->
+                    <!--<f:passThroughAttribute name="onchange" value="contentUpdated('saving');"/>-->
+                </h:inputTextarea>
+
+                <h:commandButton immediate="false" action="#{documentPageBean.deleteDocument}" value="Delete"
+                                 title="Remove current document from the database"
+                                 disabled="#{documentPageBean.readOnly}"/>
+
+            </h:panelGrid>
+
+            <br/>
+            <!-- we keep the scripts here to ease development, otherwise scripts may be kept in pagesScripts.js
+            -->
+            <script type="text/javascript">
+                var userName = '#{userBean.userName}'; // final
+                var documentName = '#{documentPageBean.documentName}'; // final
+                var documentDescription = '#{documentPageBean.description}'; // final
+
+                const statusElement = document.getElementById("statusId");
+                const textareaElement = document.getElementById('form:contentTextArea');
+
+
+                var sentContents = "";
+                var currentVersion = "#{documentPageBean.previousVersion}";
+                var lastRun = Date.now();
+                var requestInProgress = false;
+
+                function multieditorWebsocketListener(message, channel, event) {
+//                        alert("websocket:"+message.documentName+" "+message.version);
+                    if (documentName === message.documentName) {   // our document has been updated
+
+                        // delay refresh by 100ms after receiving message update - this allows to avoid extra updates
+                        // often we receive websocket message even before we finished processing update request (ajax)
+
+                        var delay = 100;
+                        // user typed recently - give user another chance to type
+                        if (500 > (Date.now() - lastRun)) delay = 500;
+
+                        refreshIfNeeded = function (message) {
+                            if (message.version > currentVersion) {
+                                // a trick not to update very often - we assume that versions are ordered
+                                // and skip update messages with versions older than the last currently seen version
+                                // This matters especially if many users are concurrently editing the same document
+                                contentUpdated('refreshing');
+                            }
+                        }
+                        window.setTimeout(refreshIfNeeded, delay, message);
+                    }
+                }
+
+                //  there should be a way to avoid extra updates when nothing actually updated
+                //  say by comparing sentContents and current value and checking that we are updating not refreshing due to a websocket update
+                //  but I don't want to introduce it at the moment to keep the logic more simple and robust
+                function contentUpdated(opstatus) {
+                    // guard against several requests in progress from the same page    
+                    if (requestInProgress) {
+                        if (2000 > Date.now() - lastRun) {
+                            // reschedule for later time to make sure we won't miss an update
+                            window.setTimeout(contentUpdated, 1000, opstatus);
+                            return; // postpone request
+                        }
+                    }
+                    requestInProgress = true;
+                    lastRun = Date.now();
+                    sentContents = textareaElement.value;
+                    statusElement.innerHTML = 'Status: ' + opstatus + '...';
+                    $.ajax({
+                        type: "POST",
+                        url: "/multieditor/rest/documentService/createOrUpdate",
+                        dataType: "json",    // not really needed once we set it on the service method
+                        data: {
+                            name: documentName,
+                            description: documentDescription,
+                            contents: textareaElement.value,
+                            user: userName,
+                            previousVersion: currentVersion,
+                            cursorPosition: textareaElement.selectionStart
+                        },
+                        success: function (data, textStatus) {
+                            requestInProgress = false;
+                            if (textareaElement.value === sentContents) {
+                                currentVersion = data.document.version;
+                                statusElement.innerHTML += ' in sync';
+                                if (sentContents !== data.document.contents) {
+                                    // no changes during update request hence we may update the textarea to show merged content to the user
+                                    var oldStart = textareaElement.selectionStart;
+                                    var oldEnd = textareaElement.selectionEnd;
+                                    var oldDirection = textareaElement.selectionDirection;
+                                    textareaElement.value = data.document.contents;
+                                    textareaElement.setSelectionRange(oldStart + data.cursorCorrection, oldEnd + data.cursorCorrection, oldDirection);
+
+                                    // todo pass proper name(s) in case of a merge as well - use a special data field here
+                                    statusElement.innerHTML += ' modified by ' + data.document.ownerOfChange.fullName;
+                                }
+
+                            } else {
+                                statusElement.innerHTML += ' done';
+                                // let user continue editing, next time send the version corresponding to previous edit
+                                // this trick allows not to merge data on the client side in case user updated textarea during request
+                                // textarea gets up to date with head once the user pauses for long enough to let request start and complete.
+                                if (data.savedVersion.length > 0) {
+                                    currentVersion = data.savedVersion;
+                                } // otherwise stick to the same version
+                            }
+                        }
+                    });
+                }
+
+                // setup a periodic refresh once a second
+                //
+                // we now use websockets instead to get update notifications
+                //
+                // prewebsocket note explaining rationale:
+                // probably easiest way is to use JSF 2.3 web-socket which allows only to recieve messages on the client
+                // but automatically pushes message (the name of the changed document) to all clients (it is strange if this is
+                // JSF specific, but Java EE7 books all write manual broadcast-to-all clients code)
+                // see JSF 2.3 spec, 10.4.1.7 f:websocket  - use it with application scope and no user (user sets scope to session)
+                // see also http://blog.payara.fish/jsf-2.3-the-websocket-quickstart-under-payara-server
+                //
+                // see DocumentServiceImpl comments for more on how to make it 'per document name'
+                regularRefresh = function () {
+                    if (Date.now() - lastRun > 500) {
+                        contentUpdated('refreshing');
+                    }
+                    //run again, I decided to use setTimeout() not setInterval() which needs an explicit stop
+                    window.setTimeout(regularRefresh, 1000);
+                }
+                //                    regular refresh turned off in favor of websocket notifications
+                //                    window.setTimeout(regularRefresh, 1000);
+            </script>
+
+        </h:panelGroup>
+
+        <h:messages styleClass="errorMessage"/>
+
+    </ui:define>
+
+    This text will not be displayed.
+
+</ui:composition>
+
+This text below will also not be displayed.
+
+</body>
+</html>

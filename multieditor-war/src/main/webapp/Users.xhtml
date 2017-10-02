@@ -1,0 +1,84 @@
+<?xml version='1.0' encoding='UTF-8' ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+        "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:ui="http://xmlns.jcp.org/jsf/facelets"
+      xmlns:f="http://xmlns.jcp.org/jsf/core"
+      xmlns:h="http://xmlns.jcp.org/jsf/html"
+      xmlns:gc="http://xmlns.jcp.org/jsf/composite/components">
+<body>
+
+<ui:composition template="/template.xhtml">
+    <ui:define name="metadata">
+        <f:metadata>
+        </f:metadata>
+    </ui:define>
+    <ui:define name="title">Browse users</ui:define>
+
+    <ui:define name="body">
+
+        <h:messages styleClass="errorMessage" showDetail="true"/>
+
+        <h:panelGroup rendered="#{not userBean.loggedIn}">
+            <p>You should be <h:link outcome="Login" title="Click to login" value="logged in"/> to access this page.</p>
+        </h:panelGroup>
+
+        <h:panelGroup rendered="#{userBean.loggedIn}">
+            <h:panelGrid columns="4">
+                <h:commandButton action="#{usersPageBean.refresh}" value="Refresh"/>
+                <h:link outcome="UserEdit" value="Create a new user"/>
+            </h:panelGrid>
+
+            <br/>
+
+            <gc:sortable>
+                <f:facet name="caption">
+                    <h:outputText value="Registered users:"/>
+                </f:facet>
+
+                <f:facet name="header">
+                    <gc:sortheader header="Login Name"/>
+                    <gc:sortheader header="Full Name"/>
+                    <gc:sortheader header="E-mail"/>
+                    <gc:sortheader header="Background Colour"/>
+                    <gc:sortheader header="User"/>
+                    <gc:sortheader header="Actions"/>
+                </f:facet>
+                <ui:repeat value="#{usersPageBean.users}" var="user">
+                    <tr>
+                        <gc:sortcolumn>
+                            <h:outputText value="#{user.name}"/>
+                        </gc:sortcolumn>
+                        <gc:sortcolumn>
+                            <h:outputText value="#{user.fullName}"/>
+                        </gc:sortcolumn>
+                        <gc:sortcolumn>
+                            <h:outputText value="#{user.email}"/>
+                        </gc:sortcolumn>
+                        <gc:sortcolumn>
+                            <h:outputText value="#{user.colour}" style="background-color: #{user.colour}"/>
+                        </gc:sortcolumn>
+                        <gc:sortcolumn>
+                            <gc:outputUser value="#{user.name}"/>
+                        </gc:sortcolumn>
+                        <gc:sortcolumn>
+                            <h:link outcome="UserEdit" value="edit">
+                                <f:param name="#{UtilityBean.userParamName}" value="#{user.name}"/>
+                            </h:link>
+                            &nbsp;
+                        </gc:sortcolumn>
+                    </tr>
+                </ui:repeat>
+            </gc:sortable>
+        </h:panelGroup>
+
+
+    </ui:define>
+
+    This text will not be displayed.
+</ui:composition>
+
+This text below will also not be displayed.
+
+</body>
+</html>

@@ -1,0 +1,6 @@
+# jvm options which are specific for production
+# NOTE: please, escape ':' with '\:' (required by create-jvm-options command)
+# Example: -XX:+UseParallelOldGC -> -XX\:+UseParallelOldGC
+-Xmx64G
+-Xms64G
+-XX\:MaxNewSize=3g

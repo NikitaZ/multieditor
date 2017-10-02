@@ -1,0 +1,109 @@
+<?xml version='1.0' encoding='UTF-8' ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+        "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:ui="http://xmlns.jcp.org/jsf/facelets"
+      xmlns:h="http://xmlns.jcp.org/jsf/html"
+      xmlns:gc="http://xmlns.jcp.org/jsf/composite/components"
+>
+<ui:insert name="metadata"/>
+<h:head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+    <title>
+        Multieditor:
+        <ui:insert name="title">Default Title</ui:insert>
+    </title>
+    <link rel="shortcut icon" href="#{resource['images/favicon.png']}"/>
+    <h:outputScript name="js/jquery-1.9.1.js"/>
+    <h:outputScript name="js/custom/jquery-ui-1.10.2.custom.js"/>
+    <h:outputScript name="common.js"/>
+    <h:outputScript name="sorttable.js"/>
+    <h:outputScript name="pagesScripts.js"/>
+
+    <h:outputStylesheet name="js/custom/css/jquery-ui-1.10.2.custom.css"/>
+    <h:outputStylesheet name="stylesheet.css"/>
+    <h:outputStylesheet name="css_master-all.css"/>
+    <h:outputStylesheet name="multieditor.css"/>
+</h:head>
+
+<h:body>
+    <div class="app-container #{ServiceBean.development ? 'statusLineDevelopment' : ''}">
+        <div class="app-content">
+            <table cellpadding="0" width="100%">
+                <tr>
+                    <td style="vertical-align: top;">
+                        <gc:appLogo/>
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        <ui:remove>Handler 'onkeypress' is required for ignoring 'Enter' key pressing by default,
+                            otherwise it is handled as clicking on the first button on the form (this button can do
+                            something terrible like 'Kill job' - INTJDK-7605732).
+                        </ui:remove>
+                        <h:form id="form" onkeypress="return defaultEnterHandler(event);"> <!-- for easy ajax -->
+                            <!--<ui:debug hotkey="i"/> -->
+                            <!-- ctrl+shift+i - shows popup with some debug info, not very useful, but try it -->
+
+                            <table width="100%">
+                                <tr>
+                                    <td style="width: 100%;" colspan="2">
+                                        <gc:navtree/>
+                                    </td>
+                                </tr>
+                                <!--<tr>-->
+                                <!--&lt;!&ndash;<td style="width: 100%" colspan="2">&ndash;&gt;-->
+                                <!--&lt;!&ndash;</td>&ndash;&gt;-->
+                                <!--</tr>-->
+                                <tr>
+                                    <td colspan="2">
+                                        <h:panelGroup rendered="#{not notitle}">
+                                            <h1 style="word-break: break-all">
+                                                <ui:insert name="pagetitle">
+                                                    <ui:insert name="title">Unspecified title
+                                                    </ui:insert>
+                                                </ui:insert>
+                                            </h1>
+                                        </h:panelGroup>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td width="50%" valign="top">
+                                        <ui:insert name="status"/>
+                                    </td>
+                                    <td width="50%" valign="top" align="right">
+                                        <ui:insert name="action"/>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td colspan="2" height="100%">
+                                        <ui:insert name="body">Unspecified body</ui:insert>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td colspan="2">
+                                        <ui:insert name="debugMessages">
+                                            <!-- default implementation (show basic perf data like total page load size) -->
+                                            <gc:outputDebug/>
+                                        </ui:insert>
+                                    </td>
+                                </tr>
+                            </table>
+
+                        </h:form>
+                    </td>
+                </tr>
+            </table>
+        </div>
+        <div class="app-footer">
+            <p>${versionString}</p>
+            <p>
+                Please send an email to
+                <a href="mailto:nikita.zinoviev@gmail.com">nikita.zinoviev@gmail.com</a>
+                for support requests.
+            </p>
+        </div>
+    </div>
+</h:body>
+</html>
+  

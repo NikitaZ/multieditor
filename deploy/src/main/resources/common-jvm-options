@@ -1,0 +1,51 @@
+# jvm options which are common for all profiles (development, production, etc)
+# NOTE: please, escape ':' with '\:' (required by create-jvm-options command)
+# Example: -XX:+UseParallelOldGC -> -XX\:+UseParallelOldGC
+# avoid blank lines which turn into extra ':'
+-d64
+-server
+# TODO: try -XX\:+AggressiveHeap
+# parallel garbage collection for the full collections
+-XX\:+UseParallelOldGC
+-XX\:SurvivorRatio=8
+# disable calls to System.gc()
+-XX\:+DisableExplicitGC
+-XX\:+UnlockDiagnosticVMOptions
+-XX\:+LogVMOutput
+-XX\:LogFile=${com.sun.aas.instanceRoot}/logs/jvm.log
+-XX\:+PrintGCDetails
+-XX\:+PrintGCTimeStamps
+-Xloggc\:gf_gc.log
+# use fixed locale (to avoid issues with different locale settings)
+-Duser.language=en
+-Duser.region=US
+# Nikita: solves eclipselink 2.2 RMI problem
+-Declipselink.weaving.fetchgroups=false
+-Dcom.sun.corba.ee.transport.ORBTCPTimeouts=500\:30000\:20
+#
+# Options copied from default installation of Glassfish 4.1
+-Djava.awt.headless=true
+-Djdk.corba.allowOutputStreamSubclass=true
+-Djavax.xml.accessExternalSchema=all
+-Djavax.management.builder.initial=com.sun.enterprise.v3.admin.AppServerMBeanServerBuilder
+-Djava.endorsed.dirs=${com.sun.aas.installRoot}/modules/endorsed${path.separator}${com.sun.aas.installRoot}/lib/endorsed
+-Djava.ext.dirs=${com.sun.aas.javaRoot}/lib/ext${path.separator}${com.sun.aas.javaRoot}/jre/lib/ext${path.separator}${com.sun.aas.instanceRoot}/lib/ext
+-Djava.security.policy=${com.sun.aas.instanceRoot}/config/server.policy
+-Djava.security.auth.login.config=${com.sun.aas.instanceRoot}/config/login.conf
+-Dcom.sun.enterprise.security.httpsOutboundKeyAlias=s1as
+-Djavax.net.ssl.keyStore=${com.sun.aas.instanceRoot}/config/keystore.jks
+-Djavax.net.ssl.trustStore=${com.sun.aas.instanceRoot}/config/cacerts.jks
+-Djdbc.drivers=org.apache.derby.jdbc.ClientDriver
+-DANTLR_USE_DIRECT_CLASS_LOADING=true
+-Dcom.sun.enterprise.config.config_environment_factory_class=com.sun.enterprise.config.serverbeans.AppserverConfigEnvironmentFactory
+-Dorg.glassfish.additionalOSGiBundlesToStart=org.apache.felix.shell,org.apache.felix.gogo.runtime,org.apache.felix.gogo.shell,org.apache.felix.gogo.command,org.apache.felix.shell.remote,org.apache.felix.fileinstall
+-Dosgi.shell.telnet.maxconn=1
+-Dosgi.shell.telnet.ip=127.0.0.1
+-Dgosh.args=--nointeractive
+-Dfelix.fileinstall.dir=${com.sun.aas.installRoot}/modules/autostart/
+-Dfelix.fileinstall.poll=5000
+-Dfelix.fileinstall.log.level=2
+-Dfelix.fileinstall.bundles.new.start=true
+-Dfelix.fileinstall.bundles.startTransient=true
+-Dfelix.fileinstall.disableConfigSave=false
+-Dcom.ctc.wstx.returnNullForDefaultNamespace=true

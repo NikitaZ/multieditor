@@ -1,0 +1,500 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project name="Application Server Setup" default="setup-app-server">
+
+    <target name="setup-app-server" depends="generate-pass-file,create-domain,start-domain">
+        <antcall target="enable-remote-admin"/>
+        <antcall target="set-logging-properties"/>
+
+        <!-- creating listeners before setting app server properties,
+             because there listener options are also set -->
+        <antcall target="create-http-listeners"/>
+
+        <antcall target="set-app-server-properties"/>
+        <!-- set VM options as last step, because it also restarts server, but setting some
+             other options like remote-admin, enable-debug requires server restart too
+         -->
+        <antcall target="set-vm-options"/>
+
+        <!-- set address used by REST-clients -->
+        <antcall target="add-system-property">
+            <param name="property.name.value.pair" value="service.url=${service.url}"/>
+        </antcall>
+
+        <!-- set release access service address in production profile only -->
+        <if>
+            <equals arg1="${configure.release.access.service.url}" arg2="true"/>
+            <then>
+                <antcall target="add-system-property">
+                    <param name="property.name.value.pair"
+                           value="release.access.service.url=http://lala:21213"/>
+                </antcall>
+            </then>
+        </if>
+
+        <antcall target="set-app-server-resources"/>
+    </target>
+
+    <target name="create-domain" depends="generate-pass-file">
+        <exec executable="${asadmin.path}" failonerror="true">
+            <arg value="--user"/>
+            <arg value="${admin.user}"/>
+            <arg value="--passwordfile"/>
+            <arg value="${admin.pass.file}"/>
+            <arg value="create-domain"/>
+            <arg value="--domainproperties"/>
+            <arg value="domain.adminPort=${admin.port}:domain.instancePort=${port.prefix}000:domain.jmxPort=${port.prefix}086:http.ssl.port=${port.prefix}081:java.debugger.port=${port.prefix}009:jms.port=${port.prefix}076:orb.listener.port=${port.prefix}037:orb.ssl.port=${port.prefix}038:orb.mutualauth.port=${port.prefix}039:osgi.shell.telnet.port=${port.prefix}066"/>
+            <arg value="${domain.name}"/>
+        </exec>
+
+        <antcall target="fix-jms-port"/>
+    </target>
+
+    <target name="fix-jms-port">
+        <echo message="Fixing JMS port value (GlassFish bug: https://java.net/jira/browse/GLASSFISH-20606 )..."/>
+        <replace file="${deploy.dir}/glassfish/domains/${domain.name}/config/domain.xml"
+                 token="&quot;7676&quot;"
+                 value="&quot;${port.prefix}076&quot;"/>
+    </target>
+
+    <target name="generate-pass-file">
+        <echo file="${admin.pass.file}" append="false">AS_ADMIN_PASSWORD=${admin.password}</echo>
+    </target>
+
+    <target name="start-domain">
+        <exec executable="${asadmin.path}" failonerror="false">
+            <arg value="start-domain"/>
+            <arg value="${domain.name}"/>
+        </exec>
+    </target>
+
+    <target name="restart-domain">
+        <exec executable="${asadmin.path}" failonerror="true">
+            <arg value="restart-domain"/>
+            <arg value="${domain.name}"/>
+        </exec>
+    </target>
+
+    <target name="stop-domain">
+        <exec executable="${asadmin.path}" failonerror="false" failifexecutionfails="false">
+            <arg value="stop-domain"/>
+            <arg value="${domain.name}"/>
+        </exec>
+    </target>
+
+    <target name="set-vm-options" depends="remove-default-options">
+
+        <antcall target="add-vm-options">
+            <param name="options.file.to.load" value="${common.vm.options.file}"/>
+        </antcall>
+
+        <echo message="Set extra JVM option depending on mode (profile)..."/>
+        <antcall target="add-vm-options">
+            <param name="options.file.to.load" value="${extra.vm.options.file}"/>
+        </antcall>
+
+        <echo message="Restarting application server after JVM options update..."/>
+        <antcall target="restart-domain"/>
+    </target>
+
+    <!-- Loads lines (one line is one option) from file and concatenates them with colon,
+     also skips comments starting with '#'-->
+    <target name="load-options-from-file">
+        <echo message="Loading options from file: ${options.file.to.load} ..."/>
+        <loadfile property="loaded.options" srcFile="${options.file.to.load}">
+            <filterchain>
+                <!-- remove comments -->
+                <striplinecomments>
+                    <comment value="#"/>
+                </striplinecomments>
+                <!-- set delimiter
+                (which is used by commands like 'create-jvm-options', 'set-log-attributes') -->
+                <suffixlines suffix=":"/>
+                <!-- get rid of line breaks -->
+                <striplinebreaks/>
+            </filterchain>
+        </loadfile>
+    </target>
+
+    <target name="add-vm-options" depends="load-options-from-file">
+        <property name="vm.options.to.set" value="${loaded.options}"/>
+
+        <echo message="VM options to add: ${vm.options.to.set}"/>
+
+        <antcall target="create-jvm-options">
+            <param name="vm.options.to.add" value="${vm.options.to.set}"/>
+        </antcall>
+
+    </target>
+
+    <target name="remove-default-options">
+
+        <property name="default.options.file"
+                  value="${deploy.dir}/glassfish-default-jvm-options"/>
+
+        <exec executable="${asadmin.path}" failonerror="true" output="${default.options.file}">
+            <arg value="--port"/>
+            <arg value="${admin.port}"/>
+            <arg value="--user"/>
+            <arg value="${admin.user}"/>
+            <arg value="--passwordfile"/>
+            <arg value="${admin.pass.file}"/>
+            <arg value="list-jvm-options"/>
+        </exec>
+
+        <!-- escape ':' with '\:' - required by delete-jvm-options command -->
+        <replace file="${default.options.file}" token=":" value="\:"/>
+
+        <loadfile property="default.options" srcFile="${default.options.file}">
+            <filterchain>
+                <!-- get rid of the last line:
+                'Command list-jvm-options executed successfully' -->
+                <tailfilter lines="-1" skip="1"/>
+                <!-- filter out option with already correct value -->
+                <linecontains negate="true">
+                    <contains value="-Dosgi.shell.telnet.port="/>
+                </linecontains>
+                <!-- set delimiter (which is used by delete-jvm-options command) -->
+                <suffixlines suffix=":"/>
+                <!-- get rid of line breaks -->
+                <striplinebreaks/>
+            </filterchain>
+        </loadfile>
+
+        <echo message="${default.options}"/>
+
+        <antcall target="delete-jvm-options">
+            <param name="vm.options.to.delete" value="${default.options}"/>
+        </antcall>
+    </target>
+
+    <target name="delete-jvm-options">
+        <exec executable="${asadmin.path}" failonerror="true">
+            <arg value="--port"/>
+            <arg value="${admin.port}"/>
+            <arg value="--user"/>
+            <arg value="${admin.user}"/>
+            <arg value="--passwordfile"/>
+            <arg value="${admin.pass.file}"/>
+            <arg value="delete-jvm-options"/>
+            <arg value="${vm.options.to.delete}"/>
+        </exec>
+    </target>
+
+    <target name="create-jvm-options">
+        <exec executable="${asadmin.path}" failonerror="true">
+            <arg value="--port"/>
+            <arg value="${admin.port}"/>
+            <arg value="--user"/>
+            <arg value="${admin.user}"/>
+            <arg value="--passwordfile"/>
+            <arg value="${admin.pass.file}"/>
+            <arg value="create-jvm-options"/>
+            <arg value="${vm.options.to.add}"/>
+        </exec>
+    </target>
+
+    <target name="enable-remote-admin">
+        <echo message="Enabling remote access for admin web console..."/>
+        <exec executable="${asadmin.path}" failonerror="true">
+            <arg value="--port"/>
+            <arg value="${admin.port}"/>
+            <arg value="--user"/>
+            <arg value="${admin.user}"/>
+            <arg value="--passwordfile"/>
+            <arg value="${admin.pass.file}"/>
+            <arg value="enable-secure-admin"/>
+        </exec>
+    </target>
+
+    <target name="deploy-component">
+        <echo message="Deploying ${component}..."/>
+
+        <exec executable="${asadmin.path}" failonerror="true">
+            <arg value="--user"/>
+            <arg value="${admin.user}"/>
+            <arg value="--passwordfile"/>
+            <arg value="${admin.pass.file}"/>
+            <arg value="--port"/>
+            <arg value="${admin.port}"/>
+            <arg value="deploy"/>
+            <arg value="--force=true"/>
+            <arg value="${component}"/>
+        </exec>
+    </target>
+
+    <target name="undeploy-component">
+        <echo message="Undeploying ${component}..."/>
+
+        <exec executable="${asadmin.path}" failonerror="true">
+            <arg value="--user"/>
+            <arg value="${admin.user}"/>
+            <arg value="--passwordfile"/>
+            <arg value="${admin.pass.file}"/>
+            <arg value="--port"/>
+            <arg value="${admin.port}"/>
+            <arg value="undeploy"/>
+            <arg value="${component}"/>
+        </exec>
+    </target>
+
+    <target name="set-app-server-resources">
+
+        <if>
+            <equals arg1="${add.common.server.resources}" arg2="true"/>
+            <then>
+                <echo message="Adding common resources to application server..."/>
+                <antcall target="add-resources">
+                    <param name="resources.to.add" value="${common.resources.xml}"/>
+                </antcall>
+            </then>
+        </if>
+
+        <echo message="Adding extra resources to application server depending on mode (profile)..."/>
+        <antcall target="add-resources">
+            <param name="resources.to.add" value="${extra.resources.xml}"/>
+        </antcall>
+
+    </target>
+
+    <target name="add-resources">
+        <exec executable="${asadmin.path}" failonerror="true">
+            <arg value="--user"/>
+            <arg value="${admin.user}"/>
+            <arg value="--passwordfile"/>
+            <arg value="${admin.pass.file}"/>
+            <arg value="--port"/>
+            <arg value="${admin.port}"/>
+            <arg value="add-resources"/>
+            <arg value="${resources.to.add}"/>
+        </exec>
+    </target>
+
+    <target name="add-system-property">
+        <!-- escape ':' with '\:' - required by 'create-system-properties' command -->
+        <propertyRegex property="escaped.name.value"
+                       input="${property.name.value.pair}"
+                       regexp="[\:]"
+                       replace="\\\\:"
+                       global="true"/>
+        <antcall target="create-system-properties">
+            <param name="properties.to.add" value="${escaped.name.value}"/>
+        </antcall>
+    </target>
+
+    <target name="create-system-properties">
+        <echo message="Creating system properties: ${properties.to.add} ..."/>
+        <exec executable="${asadmin.path}" failonerror="true">
+            <arg value="--user"/>
+            <arg value="${admin.user}"/>
+            <arg value="--passwordfile"/>
+            <arg value="${admin.pass.file}"/>
+            <arg value="--port"/>
+            <arg value="${admin.port}"/>
+            <arg value="create-system-properties"/>
+            <!-- Expected value of 'properties.to.add':
+                name1=value1:name2=value2:...
+            -->
+            <arg value="${properties.to.add}"/>
+        </exec>
+    </target>
+
+    <target name="set-logging-properties">
+        <!-- this extra level of nesting exists in order to pass the value for options.file.to.load -->
+
+        <antcall target="set-log-attributes">
+            <param name="options.file.to.load" value="${common.logging.properties}"/>
+        </antcall>
+
+        <antcall target="set-log-levels">
+            <param name="options.file.to.load" value="${common.logging-levels.properties}"/>
+        </antcall>
+
+    </target>
+
+    <target name="set-log-attributes" depends="load-options-from-file">
+        <property name="log.properties.to.add" value="${loaded.options}"/>
+        <echo message="Set logging properties: ${log.properties.to.add} ..."/>
+
+        <exec executable="${asadmin.path}" failonerror="true">
+            <arg value="--user"/>
+            <arg value="${admin.user}"/>
+            <arg value="--passwordfile"/>
+            <arg value="${admin.pass.file}"/>
+            <arg value="--port"/>
+            <arg value="${admin.port}"/>
+            <arg value="set-log-attributes"/>
+            <!-- Expected value of 'log.properties.to.add':
+                name1=value1:name2=value2:...
+            -->
+            <arg value="${log.properties.to.add}"/>
+        </exec>
+    </target>
+
+    <target name="set-log-levels" depends="load-options-from-file">
+        <property name="log.levels.to.add" value="${loaded.options}"/>
+        <echo message="Set logging properties: ${log.levels.to.add} ..."/>
+
+        <exec executable="${asadmin.path}" failonerror="true">
+            <arg value="--user"/>
+            <arg value="${admin.user}"/>
+            <arg value="--passwordfile"/>
+            <arg value="${admin.pass.file}"/>
+            <arg value="--port"/>
+            <arg value="${admin.port}"/>
+            <arg value="set-log-levels"/>
+            <!-- Expected value of 'log.properties.to.add':
+                name1=value1:name2=value2:...
+            -->
+            <arg value="${log.levels.to.add}"/>
+        </exec>
+    </target>
+
+    <target name="set-app-server-properties">
+        <antcall target="set-http-threads-count"/>
+
+        <antcall target="configure-app-server-settings">
+            <param name="settings.file.to.load" value="${common.app.server.settings}"/>
+        </antcall>
+
+    </target>
+
+    <target name="set-http-threads-count" depends="get-max-threads-count">
+
+        <echo message="Setting GlassFish http-thread-pool max size to ${max.http.threads.count} ..."/>
+        <antcall target="set-app-server-property">
+            <param name="property.name.value.pair"
+                   value="server.thread-pools.thread-pool.http-thread-pool.max-thread-pool-size=${max.http.threads.count}"/>
+        </antcall>
+
+    </target>
+
+    <target name="get-max-threads-count" depends="get-cores-count">
+        <!-- our default value for http thread pool max size -->
+        <property name="http.threads.def.count" value="12"/>
+        <!-- max size of http thread pool in GlassFish should be equal to <number of logical cores> (at least).
+         NOTE: when this size is quite big (more than 32) need also to increase size of DB connection
+               pools (at least for H2), because max size of the such pool equals to 32 by default
+        -->
+        <property name="http.threads.count" value="${cores.count}"/>
+
+        <!-- remainder = http.threads.def.count % http.threads.count -->
+        <math result="remainder" operand1="${http.threads.def.count}"
+              operation="%" operand2="${http.threads.count}" datatype="int"/>
+        <if>
+            <!-- set new value if it is greater than default
+                 (we use remainder, because there is no greater operator in Ant)
+            -->
+            <equals arg1="${remainder}" arg2="${http.threads.def.count}"/>
+            <then>
+                <property name="max.http.threads.count" value="${http.threads.count}"/>
+            </then>
+            <else>
+                <property name="max.http.threads.count" value="${http.threads.def.count}"/>
+            </else>
+        </if>
+    </target>
+
+    <target name="get-cores-count">
+
+        <property environment="env"/>
+        <condition property="cores.count" value="${env.NUMBER_OF_PROCESSORS}">
+            <os family="windows"/>
+        </condition>
+
+        <exec executable="nproc" outputproperty="cores.count" os="Linux,SunOS,Solaris"
+              failonerror="false" failifexecutionfails="false">
+            <arg value="--all"/>
+        </exec>
+
+        <exec executable="sysctl" outputproperty="cores.count" os="Mac,Darwin"
+              failonerror="false" failifexecutionfails="false">
+            <arg value="-n"/>
+            <arg value="hw.ncpu"/>
+        </exec>
+
+        <!-- support for unknown OS -->
+        <condition property="cores.count" value="1">
+            <not>
+                <isset property="cores.count"/>
+            </not>
+        </condition>
+
+        <echo message="Found the following number of logical cores: ${cores.count}"/>
+    </target>
+
+    <target name="set-app-server-property">
+        <exec executable="${asadmin.path}" failonerror="true">
+            <arg value="--user"/>
+            <arg value="${admin.user}"/>
+            <arg value="--passwordfile"/>
+            <arg value="${admin.pass.file}"/>
+            <arg value="--port"/>
+            <arg value="${admin.port}"/>
+            <arg value="set"/>
+            <arg value="${property.name.value.pair}"/>
+        </exec>
+    </target>
+
+    <target name="load-settings-from-file">
+        <echo message="Loading settings from ${settings.file.to.load} ..."/>
+        <loadfile property="loaded.settings" srcFile="${settings.file.to.load}">
+            <filterchain>
+                <!-- remove comments -->
+                <striplinecomments>
+                    <comment value="#"/>
+                </striplinecomments>
+                <!-- set delimiter -->
+                <suffixlines suffix="|"/>
+                <!-- get rid of line breaks -->
+                <striplinebreaks/>
+            </filterchain>
+        </loadfile>
+    </target>
+
+    <target name="configure-app-server-settings" depends="load-settings-from-file">
+        <echo message="Loaded settings: ${loaded.settings}"/>
+        <for list="${loaded.settings}" param="setting.pair" delimiter="|">
+            <sequential>
+                <antcall target="set-app-server-property">
+                    <param name="property.name.value.pair" value="@{setting.pair}"/>
+                </antcall>
+            </sequential>
+        </for>
+    </target>
+
+    <target name="create-http-listeners">
+        <echo message="Creating HTTP listeners on port ${ws.port} and 80..."/>
+
+        <antcall target="create-http-listener">
+            <param name="listener.name" value="${std.http.listener}"/>
+            <param name="listener.port" value="80"/>
+            <param name="listener.enabled" value="${standard.http.port.enabled}"/>
+        </antcall>
+
+        <antcall target="create-http-listener">
+            <param name="listener.name" value="${ws.http.listener}"/>
+            <param name="listener.port" value="${ws.port}"/>
+            <param name="listener.enabled" value="${ws.http.listener.enabled}"/>
+        </antcall>
+    </target>
+
+    <target name="create-http-listener">
+        <exec executable="${asadmin.path}" failonerror="true">
+            <arg value="--user"/>
+            <arg value="${admin.user}"/>
+            <arg value="--passwordfile"/>
+            <arg value="${admin.pass.file}"/>
+            <arg value="--port"/>
+            <arg value="${admin.port}"/>
+            <arg value="create-http-listener"/>
+            <arg value="--default-virtual-server"/>
+            <arg value="server"/>
+            <arg value="--listeneraddress"/>
+            <arg value="0.0.0.0"/>
+            <arg value="--listenerport"/>
+            <arg value="${listener.port}"/>
+            <arg value="--enabled=${listener.enabled}"/>
+            <arg value="${listener.name}"/>
+        </exec>
+    </target>
+</project>

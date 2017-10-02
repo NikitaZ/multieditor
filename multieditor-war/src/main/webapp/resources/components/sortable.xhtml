@@ -1,0 +1,66 @@
+<?xml version='1.0' encoding='UTF-8' ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+        "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:h="http://xmlns.jcp.org/jsf/html"
+      xmlns:composite="http://xmlns.jcp.org/jsf/composite"
+>
+
+<body>
+
+This text above will not be displayed.
+
+<composite:interface name="sortable">
+    <composite:facet name="header" required="false"/>
+    <composite:facet name="extraHeader" required="false"/>
+    <composite:facet name="caption" required="false"/>
+    <composite:attribute name="styleClass" required="false" type="java.lang.String" shortDescription="style to use"/>
+    <composite:attribute name="showFilter" required="false" type="java.lang.Boolean" default="true"
+                         shortDescription="if true then filter for table data is displayed"/>
+    <composite:attribute name="showExtraHead" required="false" type="java.lang.Boolean" default="false"
+                         shortDescription="if true then extra header facet is displayed"/>
+</composite:interface>
+<composite:implementation>
+    <table id="#{cc.clientId}:table" class="Tbl_sun4 sortable #{empty cc.attrs.styleClass ? '' : cc.attrs.styleClass}">
+        <caption class="TblTtlTxt_sun4">
+            <composite:renderFacet name="caption"/>
+            <h:panelGroup rendered="#{cc.attrs.showFilter}">
+                :
+                <!-- NOTE: constant 'app-table-filter' is used in scripts -->
+                <h:inputText id="app-table-filter" style="background-color: #E1E5E8;"
+                             onkeyup="filter(this, '#{cc.clientId}:table'); updateTableColoringById('#{cc.clientId}:table'); updatePermaLink(this); setText('#{cc.clientId}-rows-cnt', getTableVisibleRowsCnt('#{cc.clientId}:table')); return false;"/>
+                (filter example: 'txt|java read ~copy')
+                <span class="bold-text" title="Count of rows after filtering">Rows displayed:</span>
+                <span id="#{cc.clientId}-rows-cnt" title="Count of rows after filtering"></span>
+                <script type="text/javascript">
+                    setText('#{cc.clientId}-rows-cnt', getTableVisibleRowsCnt('#{cc.clientId}:table'));
+                    addOnloadAction(function () {
+                        makeShiftSelectable(getIdSelector('#{cc.clientId}:table') + ' input[type="checkbox"]');
+                    });
+                </script>
+            </h:panelGroup>
+        </caption>
+        <thead>
+        <tr>
+            <composite:renderFacet name="header"/>
+        </tr>
+        <h:panelGroup rendered="#{cc.attrs.showExtraHead}">
+            <tr>
+                <composite:renderFacet name="extraHeader"/>
+            </tr>
+        </h:panelGroup>
+        </thead>
+        <tbody>
+        <composite:insertChildren/>
+        </tbody>
+    </table>
+</composite:implementation>
+<!-- does not generate ui:components ids correctly -->
+<!--<ui:repeat value="#{cc.attrs.value}" var="row">-->
+<!--<tr>-->
+<!--</tr>-->
+<!--</ui:repeat>-->
+This text below will also not be displayed.
+
+</body>
+</html>

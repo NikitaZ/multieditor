@@ -1,0 +1,75 @@
+<?xml version='1.0' encoding='UTF-8' ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+        "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:ui="http://xmlns.jcp.org/jsf/facelets"
+      xmlns:f="http://xmlns.jcp.org/jsf/core"
+      xmlns:h="http://xmlns.jcp.org/jsf/html"
+>
+
+<body>
+
+<ui:composition template="/template.xhtml">
+    <ui:define name="metadata">
+        <f:metadata>
+            <f:viewParam name="#{UtilityBean.userParamName}" value="#{userEditPageBean.userNameViaParameter}"/>
+            <f:viewParam name="#{UtilityBean.logIntoOnSaveParamName}" value="#{userEditPageBean.logIntoOnSave}"/>
+        </f:metadata>
+    </ui:define>
+    <ui:define name="title">User Edit Page</ui:define>
+
+    <ui:define name="action">&nbsp;</ui:define>
+    <ui:define name="status">&nbsp;</ui:define>
+    <ui:define name="body">
+        <h:panelGrid columns="1">
+            <f:facet name="caption">
+                <h:outputText value="Create new user or update existing one:"/>
+            </f:facet>
+            <h:outputLabel for="name" value="Name: "/>
+            <h:panelGroup>
+                <h:inputText id="name" value="#{userEditPageBean.userName}" size="80" maxlength="120"
+                             required="true" requiredMessage=" enter a unique name!"/>
+                <h:message for="name" errorStyle="color: red"/>
+            </h:panelGroup>
+
+            <h:outputLabel for="fullName" value="Full Name: "/>
+            <h:panelGroup>
+                <h:inputText id="fullName" value="#{userEditPageBean.fullName}" size="80" maxlength="120"
+                             required="true" requiredMessage=" enter a full name"/>
+                <h:message for="fullName" errorStyle="color: red"/>
+            </h:panelGroup>
+
+
+            <h:outputLabel for="email" value="E-Mail: "/>
+            <h:panelGroup>
+                <h:inputText id="email" value="#{userEditPageBean.email}" size="80" maxlength="120"
+                             required="true" requiredMessage=" enter an e-mail address"/>
+                <h:message for="email" errorStyle="color: red"/>
+            </h:panelGroup>
+
+
+            <h:outputLabel for="colour" value="Background colour: "/>
+            <h:panelGroup>
+                <h:inputText id="colour" value="#{userEditPageBean.colour}" size="80" maxlength="120"
+                             required="true" requiredMessage=" enter a colour in hex aka #CC00BB"/>
+                <h:message for="colour" errorStyle="color: red"/>
+            </h:panelGroup>
+
+
+            <h:panelGrid columns="2">
+                <h:commandButton action="#{userEditPageBean.save}" value="Save"/>
+                <h:commandButton action="#{userEditPageBean.delete}" value="Delete"/>
+            </h:panelGrid>
+        </h:panelGrid>
+
+        <h:messages styleClass="errorMessage" showDetail="true"/>
+    </ui:define>
+
+    This text will not be displayed.
+
+</ui:composition>
+
+This text below will also not be displayed.
+
+</body>
+</html>

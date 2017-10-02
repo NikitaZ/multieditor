@@ -1,0 +1,5 @@
+# jvm options, specific for development
+# NOTE: please, escape ':' with '\:' (required by create-jvm-options command)
+# Example: -XX:+UseParallelOldGC -> -XX\:+UseParallelOldGC
+#-Xmx1536m
+-Xmx512m

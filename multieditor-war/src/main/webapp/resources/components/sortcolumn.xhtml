@@ -1,0 +1,35 @@
+<?xml version='1.0' encoding='UTF-8' ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+        "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:h="http://xmlns.jcp.org/jsf/html"
+      xmlns:composite="http://xmlns.jcp.org/jsf/composite">
+
+<body>
+
+This text above will not be displayed.
+<composite:interface name="sortcolumn">
+    <composite:attribute name="customSortKey" required="false" type="java.lang.String"
+                         shortDescription="a custom sort key"/>
+    <composite:attribute default="true" name="shouldRender" required="false" type="java.lang.Boolean"
+                         shortDescription="whether to render"/>
+    <composite:attribute default="1" name="colSpan" required="false" type="java.lang.Integer"
+                         shortDescription="colspan value"/>
+    <composite:attribute name="styleClass" required="false" type="java.lang.String"
+                         shortDescription="header style to use"/>
+    <composite:attribute name="bgColor" required="false"/>
+</composite:interface>
+<composite:implementation>
+
+    <h:panelGroup rendered="#{cc.attrs.shouldRender}">
+        <td sorttable_customkey="#{cc.attrs.customSortKey}" colspan="#{cc.attrs.colSpan}"
+            class="#{cc.attrs.styleClass}" style="background-color: #{cc.attrs.bgColor}">
+            <composite:insertChildren/>
+        </td>
+    </h:panelGroup>
+</composite:implementation>
+
+This text below will also not be displayed.
+
+</body>
+</html>

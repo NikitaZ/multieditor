@@ -1,0 +1,43 @@
+<?xml version='1.0' encoding='UTF-8' ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+        "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:h="http://xmlns.jcp.org/jsf/html"
+      xmlns:composite="http://xmlns.jcp.org/jsf/composite"
+      xmlns:gc="http://xmlns.jcp.org/jsf/composite/components">
+
+<body>
+<composite:interface name="navtree"/>
+<composite:implementation>
+    <h:outputStylesheet name="menu_master.css"/>
+
+    <ul id="navigation" class="menu">
+
+
+        <li class="top-level" id="left_cap">
+            <p>
+                <h:link outcome="Documents" value="Documents"/>
+            </p>
+        </li>
+        <li class="top-level">
+            <p>
+                <h:link outcome="Users" value="Users"/>
+            </p>
+        </li>
+        <li class="top-level">
+            <p>
+                <h:link outcome="About" value="About"/>
+            </p>
+        </li>
+        <li class="login-form">
+            <p>
+                <gc:loginPanel/>
+            </p>
+        </li>
+        <li class="special top-level last">
+            <p>&nbsp;</p>
+        </li>
+    </ul>
+</composite:implementation>
+</body>
+</html>

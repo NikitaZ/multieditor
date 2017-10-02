@@ -1,0 +1,50 @@
+<?xml version='1.0' encoding='UTF-8' ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+        "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:h="http://xmlns.jcp.org/jsf/html"
+      xmlns:composite="http://xmlns.jcp.org/jsf/composite"
+      xmlns:gc="http://xmlns.jcp.org/jsf/composite/components">
+
+<body>
+
+Composite component for output profiling information and other debug messages
+
+<composite:interface name="outputDebug">
+    <composite:attribute name="profile" required="false" shortDescription="page profiling info"/>
+    <composite:attribute name="open" required="false" type="java.lang.Boolean" default="false"
+                         shortDescription="if false (by default) then component is collapsed"/>
+</composite:interface>
+<composite:implementation>
+    <gc:expand-collapse title="Debug messages">
+        <h:outputText value="Profiling data:"/>
+        <br/>
+        <pre id="#{cc.clientId}-perfomance-data">
+            <h:outputText value="#{cc.attrs.profile}"/>
+        </pre>
+        <composite:insertChildren/>
+        <script type="text/javascript" defer="defer">
+            function showPerfData() {
+                var action = function () {
+                    var elem = jQuery(getIdPartSelector("-perfomance-data"));
+                    var elemText = jQuery.trim(elem.text());
+                    if (elemText) {
+                        elemText += "\n\n";
+                    }
+                    elem.text(elemText + getPerformanceData());
+                }
+                /* Use this trick to get action done AFTER 'onload' event (to get correct timing)
+                 Set 0 timeout - to start action just after browser finishes with page loading
+                 - actual timeout will be at least 4 ms - look at the doc:
+                 https://developer.mozilla.org/en-US/docs/Web/API/window.setTimeout#Minimum.2F_maximum_delay_and_timeout_nesting
+                 */
+                window.setTimeout(action, 0);
+            }
+
+            addOnloadAction(showPerfData);
+        </script>
+    </gc:expand-collapse>
+</composite:implementation>
+
+</body>
+</html>

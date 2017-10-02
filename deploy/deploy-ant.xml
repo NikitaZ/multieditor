@@ -1,0 +1,113 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project name="Application Deploy" default="install-and-deploy">
+    <description>
+        This script set up application server for the application
+        and deploys all applications to it.
+
+        Maven cannot do this without Ant.
+    </description>
+    <!-- NOTE: most of the properties are inherited from Maven (see pom.xml) -->
+    <property name="install.home" value="${deploy.dir}/glassfish"/>
+    <property file="${resource.dir}/shared.properties"/>
+    <property name="setup.app.server.ant" value="setup-app-server-ant.xml"/>
+
+    <condition property="asadmin.ext" value=".bat" else="">
+        <os family="windows"/>
+    </condition>
+
+    <property name="asadmin.path" value="${install.home}/bin/asadmin${asadmin.ext}"/>
+
+    <target name="install-and-deploy" depends="strip-folder,set-exec-attr,remove-default-domain">
+        <!-- we use separate file to configure glassfish
+        for convenience (better maintainability)
+        -->
+        <ant antfile="${setup.app.server.ant}" inheritAll="true"/>
+
+        <antcall target="deploy-all-applications"/>
+        <echo message="Restarting application server after application deploy (fixes web-sockets)..."/>
+        <antcall target="restart-server"/>
+
+    </target>
+
+    <target name="strip-folder">
+        <!-- get rid of extra 'glassfish4' folder -->
+        <move todir="${deploy.dir}" includeEmptyDirs="yes" overwrite="false" failonerror="false">
+            <fileset dir="${deploy.dir}/glassfish4">
+                <include name="**/*"/>
+            </fileset>
+        </move>
+        <delete dir="${deploy.dir}/glassfish4" failonerror="false"/>
+    </target>
+
+    <target name="set-exec-attr" depends="strip-folder">
+        <echo message="Setting permissions under *nix systems..."/>
+        <chmod perm="777">
+            <fileset dir="${deploy.dir}/">
+                <include name="glassfish/bin/asadmin"/>
+                <include name="mq/bin/imqcmd"/>
+            </fileset>
+        </chmod>
+    </target>
+
+    <target name="remove-default-domain" depends="set-exec-attr">
+        <echo message="Removing pre-configured default domain (domain1)..."/>
+
+        <exec executable="${asadmin.path}" failonerror="false">
+            <arg value="delete-domain"/>
+            <arg value="domain1"/>
+        </exec>
+    </target>
+
+    <target name="restart-server">
+        <echo message="Restarting application server..."/>
+        <ant antfile="${setup.app.server.ant}" target="restart-domain"/>
+    </target>
+
+    <target name="stop-server">
+        <echo message="Stopping application server..."/>
+        <ant antfile="${setup.app.server.ant}" target="stop-domain"/>
+    </target>
+
+    <target name="clean" depends="stop-server">
+        <delete dir="${deploy.dir}"/>
+    </target>
+
+    <target name="deploy-all-applications">
+
+        <for list="${app.list}" param="app.name">
+            <sequential>
+                <antcall target="deploy-application">
+                    <param name="app" value="@{app.name}"/>
+                </antcall>
+            </sequential>
+        </for>
+
+    </target>
+
+    <target name="deploy-application">
+        <echo message="Deploying ${app}..."/>
+        <ant antfile="${setup.app.server.ant}" target="deploy-component">
+            <property name="component"
+                      value="${basedir}/../${app}/target/${app}-${project.version}.ear"/>
+        </ant>
+    </target>
+
+    <target name="undeploy-all-applications">
+
+        <for list="${app.list}" param="app.name">
+            <sequential>
+                <antcall target="undeploy-application">
+                    <param name="app" value="@{app.name}"/>
+                </antcall>
+            </sequential>
+        </for>
+
+    </target>
+
+    <target name="undeploy-application">
+        <ant antfile="${setup.app.server.ant}" target="undeploy-component">
+            <property name="component"
+                      value="${app}-${project.version}"/>
+        </ant>
+    </target>
+</project>

@@ -1,0 +1,38 @@
+# common glassfish settings
+#
+server.thread-pools.thread-pool.http-thread-pool.max-queue-size=8096
+# increase default value (8192) to support long links, e.g permalinks
+server-config.network-config.transports.transport.tcp.buffer-size-bytes=16384
+# increase default value (1) to improve performance
+server-config.network-config.transports.transport.tcp.acceptor-threads=4
+# enable debug (this option update requires server restart)
+server-config.java-config.debug-enabled=true
+# increase max message size (default is 10M) to allow processing of huge test results
+# increase max number of unconsumed messages (default is 100000)
+# increase max number of messages that a producer can process in a single transaction (default is 1000)
+server.jms-service.start-args=-Dimq.autocreate.destination.maxBytesPerMsg=41943040 -Dimq.autocreate.destination.maxNumMsgs=1000000 -Dimq.transaction.producer.maxNumMsgs=100000
+# default (main) listener settings
+server-config.network-config.protocols.protocol.http-listener-1.http.request-timeout-seconds=7200
+# no limit for POST
+server-config.network-config.protocols.protocol.http-listener-1.http.max-post-size-bytes=-1
+# connections in keep-alive mode
+server-config.network-config.protocols.protocol.http-listener-1.http.max-connections=256
+# compression settings
+server-config.network-config.protocols.protocol.http-listener-1.http.compression=on
+server-config.network-config.protocols.protocol.http-listener-1.http.compressable-mime-type=text/html,text/xml,text/plain,text/css,text/javascript,application/json
+# increase default value (8192) to support long redirects (on long URLs)
+server-config.network-config.protocols.protocol.http-listener-1.http.header-buffer-length-bytes=16384
+# 80-port listener settings
+server-config.network-config.protocols.protocol.std-http-listener.http.request-timeout-seconds=7200
+server-config.network-config.protocols.protocol.std-http-listener.http.max-post-size-bytes=-1
+server-config.network-config.protocols.protocol.std-http-listener.http.max-connections=256
+server-config.network-config.protocols.protocol.std-http-listener.http.compression=on
+server-config.network-config.protocols.protocol.std-http-listener.http.compressable-mime-type=text/html,text/xml,text/plain,text/css,text/javascript,application/json
+# web services listener settings
+server-config.network-config.protocols.protocol.ws-http-listener.http.request-timeout-seconds=7200
+server-config.network-config.protocols.protocol.ws-http-listener.http.max-post-size-bytes=-1
+server-config.network-config.protocols.protocol.ws-http-listener.http.max-connections=256
+server-config.network-config.protocols.protocol.ws-http-listener.http.compression=on
+server-config.network-config.protocols.protocol.ws-http-listener.http.compressable-mime-type=text/html,text/xml,text/plain,text/css,text/javascript,application/json
+# default web module
+server-config.http-service.virtual-server.server.default-web-module=multieditor-ear-1.0-SNAPSHOT#multieditor-war-1.0-SNAPSHOT.war

@@ -1,0 +1,9 @@
+This folder contains customized jQuery, which is used for dialog creation.
+
+Customization is used to make scripts as little as possible.
+
+Custom download builder is used : 
+http://jqueryui.com/download/
+
+At least currently, custom version must contain:
+1. dialog (and dependencies).

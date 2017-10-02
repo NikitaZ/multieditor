@@ -1,0 +1,53 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <parent>
+        <groupId>org.multieditor</groupId>
+        <artifactId>main</artifactId>
+        <version>1.0-SNAPSHOT</version>
+    </parent>
+    <name>Multieditor Subsystem EAR</name>
+    <artifactId>multieditor-ear</artifactId>
+    <packaging>ear</packaging>
+    <build>
+        <plugins>
+            <plugin>
+                <artifactId>maven-ear-plugin</artifactId>
+                <version>${version.plugin.ear}</version>
+                <configuration>
+                    <displayName>Multieditor</displayName>
+                    <encoding>UTF-8</encoding>
+                    <version>5</version>
+                    <modules>
+                        <ejbModule>
+                            <groupId>org.multieditor</groupId>
+                            <artifactId>multieditor-ejb</artifactId>
+                        </ejbModule>
+                        <webModule>
+                            <groupId>org.multieditor</groupId>
+                            <artifactId>multieditor-war</artifactId>
+                            <contextRoot>/multieditor</contextRoot>
+                        </webModule>
+                    </modules>
+
+                    <defaultLibBundleDir>lib/</defaultLibBundleDir>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
+    <dependencies>
+        <dependency>
+            <groupId>org.multieditor</groupId>
+            <artifactId>multieditor-ejb</artifactId>
+            <version>${project.version}</version>
+            <type>ejb</type>
+        </dependency>
+        <dependency>
+            <groupId>org.multieditor</groupId>
+            <artifactId>multieditor-war</artifactId>
+            <version>${project.version}</version>
+            <type>war</type>
+        </dependency>
+    </dependencies>
+</project>
+

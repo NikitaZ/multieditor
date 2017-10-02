@@ -1,0 +1,40 @@
+<?xml version='1.0' encoding='UTF-8' ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+        "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:ui="http://xmlns.jcp.org/jsf/facelets"
+      xmlns:h="http://xmlns.jcp.org/jsf/html"
+>
+<body>
+
+<ui:composition template="/template.xhtml">
+
+    <ui:define name="title">
+        About MultiEditor
+    </ui:define>
+
+    <ui:define name="body">
+        <p class="docs-par">This is a simple multi-user plain text document editor.</p>
+        <p class="docs-par">
+            You might be interesed in browsing <h:link outcome="/Documents">Available Documents</h:link>.
+        </p>
+
+        <p class="docs-par">
+            Mostly for debugging purposes one may take a look at list of <h:link
+                outcome="/Users">registered users</h:link>.
+        </p>
+
+        <p class="docs-par">
+            Also stupid-simple advanced documents editing facility is <h:link outcome="/DocumentsEdit">here</h:link>.
+            It is capable of editing descriptions, deleting and creating new documents without any realtime features.
+            Similar is available on DocumentJSF.xhtml page.
+        </p>
+
+
+    </ui:define>
+
+</ui:composition>
+
+</body>
+</html>
+

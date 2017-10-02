@@ -1,0 +1,44 @@
+<?xml version='1.0' encoding='UTF-8' ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+        "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:h="http://xmlns.jcp.org/jsf/html"
+      xmlns:composite="http://xmlns.jcp.org/jsf/composite">
+
+<body>
+
+This text above will not be displayed.
+<composite:interface name="loginPanel"/>
+<composite:implementation>
+
+    <table class="login-table" cellspacing="0">
+        <tbody>
+        <h:panelGroup rendered="#{not userBean.loggedIn}">
+            <tr>
+                <td class="show-left-separator">
+                    <h:link outcome="Login" title="Click to login" value="Login"/>
+                </td>
+            </tr>
+        </h:panelGroup>
+
+        <h:panelGroup rendered="#{userBean.loggedIn}">
+            <tr>
+                <td>
+                    Logged in as
+                </td>
+                <td>
+                    <h:outputText value="#{userBean.fullName}" styleClass="bold-text app-user"/>
+                </td>
+                <td class="show-left-separator">
+                    <h:commandLink title="Click to log out" action="#{userBean.logout}">
+                        Logout
+                    </h:commandLink>
+                </td>
+            </tr>
+        </h:panelGroup>
+        </tbody>
+    </table>
+
+</composite:implementation>
+</body>
+</html>

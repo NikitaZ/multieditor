@@ -1,0 +1,64 @@
+<?xml version='1.0' encoding='UTF-8' ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+        "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:h="http://xmlns.jcp.org/jsf/html"
+      xmlns:composite="http://xmlns.jcp.org/jsf/composite"
+>
+
+<body>
+This text above will not be displayed.
+<!-- parameters: id - id to use, title - header of the component to use -->
+<composite:interface name="expand-collapse">
+    <composite:facet name="header" required="false"/>
+    <composite:facet name="followup" required="false"/>
+    <composite:attribute name="title" required="true" type="java.lang.String"/>
+    <composite:attribute name="open" required="false" type="java.lang.Boolean"/>
+    <composite:attribute name="styleClass" required="false" type="java.lang.String"
+                         shortDescription="header style to use"/>
+</composite:interface>
+<composite:implementation>
+    <h:outputScript name="expand-collapse.js" target="head"/>
+    <span style="white-space: nowrap;">
+    <h:outputLink
+            styleClass="collapseHeader"
+            style="#{cc.attrs.open ? 'display:none' : 'display:inline'}"
+            id="Expand"
+            onclick="return ExpandCollapse('#{cc.clientId}')">
+        <h:graphicImage value="#{resource['images/plus.png']}" styleClass="plus" alt="Open"/><h:outputText
+            value="&nbsp;#{cc.attrs.title}" styleClass="#{cc.attrs.styleClass}"/><composite:renderFacet name="header"/>
+    </h:outputLink><h:outputLink
+            styleClass="collapseHeader"
+            style="#{cc.attrs.open ? 'display:inline' : 'display:none'}"
+            id="Collapse"
+            onclick="return ExpandCollapse('#{cc.clientId}')">
+        <h:graphicImage value="#{resource['images/minus.png']}" styleClass="minus"
+                        alt="Close"/>&nbsp;#{cc.attrs.title}
+        <composite:renderFacet name="header"/></h:outputLink><composite:renderFacet name="followup"/>
+
+    <h:panelGroup id="Body" style="#{cc.attrs.open ? 'display:block':'display:none'}">
+        <table>
+            <tr>
+                <td width="10" class="collapseLine">
+                    &nbsp;
+                </td>
+                <td>
+                    <composite:insertChildren/>
+                </td>
+            </tr>
+            <tr>
+                <td class="collapseCorner">
+
+                </td>
+                <td class="collapseFooter">#{not empty cc.attrs.title ? 'end of ' : ''}#{cc.attrs.title}</td>
+            </tr>
+        </table>
+        <br/>
+    </h:panelGroup>
+    </span>
+</composite:implementation>
+
+This text below will also not be displayed.
+
+</body>
+</html>

@@ -1,0 +1,62 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<faces-config xmlns="http://xmlns.jcp.org/xml/ns/javaee"
+              xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+              xsi:schemaLocation="http://xmlns.jcp.org/xml/ns/javaee http://xmlns.jcp.org/xml/ns/javaee/web-facesconfig_2_3.xsd"
+              version="2.3">
+
+    <lifecycle>
+        <phase-listener>org.multieditor.web.UserAuthenticationPhaseListener</phase-listener>
+    </lifecycle>
+
+    <navigation-rule>
+        <navigation-case>
+            <if>#{not userBean.loggedIn}</if>
+            <to-view-id>/Login.xhtml</to-view-id>
+            <redirect>      <!-- redirect is needed to prevent a glitch when only second press on 'login' button logs in. todo JSF bug? -->
+            </redirect>
+        </navigation-case>
+    </navigation-rule>
+
+    <navigation-rule>
+        <from-view-id>/DocumentCreate.xhtml</from-view-id>
+        <navigation-case>
+            <from-outcome>Document</from-outcome>
+            <to-view-id>/Document.xhtml</to-view-id>
+            <redirect>
+                <view-param>
+                    <name>documentName</name>
+                    <value>#{documentCreatePageBean.documentName}</value>
+                </view-param>
+            </redirect>
+        </navigation-case>
+    </navigation-rule>
+
+    <navigation-rule>
+        <from-view-id>/Login.xhtml</from-view-id>
+        <navigation-case>
+            <from-outcome>Newcommer</from-outcome>
+            <to-view-id>/UserEdit.xhtml</to-view-id>
+            <redirect>
+                <view-param>
+                    <name>userName</name>
+                    <value>#{loginPageBean.userName}</value>
+                </view-param>
+                <view-param>
+                    <name>logIntoOnSave</name>
+                    <value>#{true}</value>
+                </view-param>
+            </redirect>
+        </navigation-case>
+    </navigation-rule>
+
+
+    <navigation-rule>
+        <navigation-case>
+            <from-outcome>logout</from-outcome>
+            <to-view-id>/Login.xhtml</to-view-id>
+            <redirect> <!-- redirect is needed to prevent a glitch when only second press on 'login' button logs in. todo JSF bug? -->
+            </redirect>
+        </navigation-case>
+    </navigation-rule>
+
+</faces-config>

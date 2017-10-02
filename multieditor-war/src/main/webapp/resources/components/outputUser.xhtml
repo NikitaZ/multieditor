@@ -1,0 +1,30 @@
+<?xml version='1.0' encoding='UTF-8' ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+        "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:h="http://xmlns.jcp.org/jsf/html"
+      xmlns:composite="http://xmlns.jcp.org/jsf/composite"
+>
+
+<body>
+
+This text above will not be displayed.
+
+<composite:interface name="outputUser">
+    <composite:attribute name="value" required="true" type="java.lang.String" shortDescription="userName"/>
+    <composite:attribute name="concise" required="false" type="java.lang.Boolean" default="true"/>
+</composite:interface>
+<composite:implementation>
+    <h:outputLink value="mailto:#{userMapperBean.get(cc.attrs.value).email}">
+        <h:outputText value="#{userMapperBean.get(cc.attrs.value).fullName}"
+                      style="background-color: #{userMapperBean.get(cc.attrs.value).colour}"/>
+        <!-- body -->
+        <composite:insertChildren/>
+    </h:outputLink>
+
+</composite:implementation>
+
+This text below will also not be displayed.
+
+</body>
+</html>

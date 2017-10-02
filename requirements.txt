@@ -1,0 +1,22 @@
+Project requirements:
+
+Develop a java web-application for collaborative editing of documents.
+
+Typical scenario of workflow to be supported:
++1. user authorizes in the application
+(simple, only logins, no passwords, no https)
++2. a list of documents is shown
++3. user creates a new or opens an existing document for editing
+(very simple, plain text only editor, analogous to docs.google.com)
++4. in the meantime another user (or users) may open the same document and edit it
+5. all users simultaneously modifying a document should see in real-time the cursors and changes of each other.
+6. develop and justify an algorithm for automatic merge of conflicting changes
+
+The code should be of production quality including tests.
+
+-----
+
+
+Implementation ideas:
+- compare to google wave / apache wave - Operational Transformation (OT)
+      https://en.wikipedia.org/wiki/Operational_transformation
