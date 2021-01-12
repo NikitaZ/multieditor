@@ -95,3 +95,6 @@ and with a more complex algorithm it could be hard to clearly show the benifit o
 It all comes down to basic insert and delete operations and studying when the two operations commute. I tried thinking in this direction
 but it seems to be a long road to go (cf. https://en.wikipedia.org/wiki/Operational_transformation and google wave / apache wave).
 
+This project has been frozen for quite a while because it doesn't have a good plan for the future yet.
+I have a similar project derived from this one updated to Java EE 8, Payara application server (continuation of Glassfish v5) and Java 11. Please let me know if there is any interest in this. I may then spend 2-3 days to update this one.
+
